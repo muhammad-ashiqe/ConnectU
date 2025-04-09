@@ -2,11 +2,14 @@ import express from "express"
 import chats from "./data/data.js";
 import { configDotenv } from "dotenv";
 import cors from "cors"
+import { conncectDB } from "./config/db.js";
 
 
 
 const app = express();
 configDotenv()
+
+conncectDB()
 
 
 const PORT = process.env.PORT
@@ -39,3 +42,11 @@ app.get('/api/chats/:id',(req,res)=>{
 app.listen(PORT,()=>{
   console.log(`server started at localhost:${PORT}`)
 })
+
+
+
+
+//85s5jPNrfYI8QoWa
+
+
+//
