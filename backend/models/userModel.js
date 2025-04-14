@@ -21,7 +21,6 @@ const userSchema = mongoose.Schema(
     },
     profilePic: {
       type: String,
-      required: true,
       default:
         "https://www.kindpng.com/picc/m/78-785827_user-profile-avatar-login-account-male-user-icon.png",
     },
