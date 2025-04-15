@@ -4,6 +4,7 @@ import cors from "cors"
 import { conncectDB } from "./config/db.js";
 import { userRouter } from "./routes/userRoute.js";
 import { chatRouter } from "./routes/chatRoute.js";
+import { messageRouter } from "./routes/messageRoute.js";
 
 
 
@@ -27,6 +28,7 @@ app.get('/',(req,res)=>{
 
 app.use('/api/user',userRouter)
 app.use('/api/chat',chatRouter)
+app.use('/api/message',messageRouter)
 
 app.listen(PORT,()=>{
   console.log(`server started at localhost:${PORT}`)

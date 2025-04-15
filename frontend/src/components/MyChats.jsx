@@ -2,6 +2,7 @@ import React from 'react';
 import { formatISTTime } from '../utils/helpers';
 
 const MyChats = ({ chats, activeChat, user, onChatSelect, setIsCreateGroupModalOpen }) => {
+  console.log(chats)
   return (
     <div className="flex flex-col w-full h-full bg-gray-800 border-r border-gray-700">
       <div className="flex justify-between p-4 border-b border-gray-700">
