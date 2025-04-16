@@ -2,49 +2,72 @@ import { Chat } from "../models/chatModel.js";
 import { Message } from "../models/messageModel.js";
 import { User } from "../models/userModel.js";
 
-
 const sendMessage = async (req, res) => {
-  const { content, chatId } = req.body;
+  try {
+    const { content, chatId } = req.body;
 
-  if (!content || !chatId) {
-    return res.status(400).json({ message: "Invalid data passed into request" });
-  }
-
-  // Create new message instance
-  const message = new Message({
-    sender: req.user._id,
-    content,
-    chat: chatId,
-  });
-
-  // Save the message to database
-  await message.save();
-
-  // Populate the necessary fields
-  const populatedMessage = await Message.populate(message, [
-    { path: "sender", select: "name pic" },
-    { path: "chat" },
-    { 
-      path: "chat.users", 
-      select: "name pic email",
-      model: User 
+    if (!content || !chatId) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Invalid data passed into request" 
+      });
     }
-  ]);
 
-  // Update the chat's latest message
-  await Chat.findByIdAndUpdate(chatId, { 
-    latestMessage: populatedMessage 
-  });
+    const newMessage = {
+      sender: req.user._id,
+      content,
+      chat: chatId,
+    };
 
-  res.json(populatedMessage);
+    let message = await Message.create(newMessage);
+
+    message = await message.populate([
+      { path: "sender", select: "name pic" },
+      { path: "chat" },
+      { 
+        path: "chat.users", 
+        select: "name pic email",
+        model: User 
+      }
+    ]);
+
+    await Chat.findByIdAndUpdate(chatId, { 
+      latestMessage: message 
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Message sent successfully",
+      data: message
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to send message",
+      error: error.message
+    });
+  }
 };
 
 const allMessages = async (req, res) => {
-  const messages = await Message.find({ chat: req.params.chatId })
-    .populate("sender", "name pic email")
-    .populate("chat");
-    
-  res.json(messages);
+  try {
+    const messages = await Message.find({ chat: req.params.chatId })
+      .populate("sender", "name pic email")
+      .populate("chat")
+      .sort({ createdAt: 1 });
+
+    res.status(200).json({
+      success: true,
+      data: messages
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch messages",
+      error: error.message
+    });
+  }
 };
 
-export {sendMessage,allMessages}
+export { sendMessage, allMessages };

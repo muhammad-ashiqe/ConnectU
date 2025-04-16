@@ -1,18 +1,37 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-const MessageInput = () => {
+const MessageInput = ({ onSendMessage, isSending }) => {
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (message.trim() && !isSending) {
+      onSendMessage(message);
+      setMessage('');
+    }
+  };
+
   return (
-    <div className="p-4 border-t border-gray-700">
-      <div className="flex items-center">
+    <div className="w-full">
+      <form onSubmit={handleSubmit} className="flex w-full">
         <input
           type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
           placeholder="Type a message..."
-          className="flex-1 bg-gray-700 border border-gray-600 rounded-l-lg py-2 px-4 text-white focus:outline-none focus:ring-1 focus:ring-purple-500"
+          className="flex-1 bg-gray-700 text-white rounded-l-lg py-3 px-4 focus:outline-none focus:ring-1 focus:ring-purple-500 border border-gray-600"
+          disabled={isSending}
         />
-        <button className="bg-purple-600 text-white px-4 py-2 rounded-r-lg hover:bg-purple-700 transition">
+        <button
+          type="submit"
+          className={`bg-purple-600 text-white px-6 py-3 rounded-r-lg transition ${
+            isSending ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-700'
+          }`}
+          disabled={!message.trim() || isSending}
+        >
           Send
         </button>
-      </div>
+      </form>
     </div>
   );
 };
