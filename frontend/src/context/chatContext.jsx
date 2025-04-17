@@ -1,14 +1,17 @@
 import { createContext, useEffect, useState } from "react";
+import io from "socket.io-client";
 
-// Create the context
+const ENDPOINT = "http://localhost:7000";
+
 const ChatContext = createContext();
 
-// Provider component
 const ChatContextProvider = ({ children }) => {
   const [token, setToken] = useState();
   const [user, setUser] = useState();
   const [selectedChats, setSelectedChats] = useState(null);
   const [chats, setChats] = useState([]);
+  const [socket, setSocket] = useState(null);
+  const [notification, setNotification] = useState([]);
 
   const serverUrl = "http://localhost:7000";
 
@@ -19,13 +22,29 @@ const ChatContextProvider = ({ children }) => {
     }
   }, []);
 
-  useEffect(()=>{
+  useEffect(() => {
     const storedToken = localStorage.getItem('token');
-    if(storedToken){
-      setToken(storedToken)
-    } 
-  },[])
+    if (storedToken) {
+      setToken(storedToken);
+    }
+  }, []);
 
+  useEffect(() => {
+    if (user) {
+      const newSocket = io(ENDPOINT, {
+        auth: {
+          token: localStorage.getItem('token')
+        }
+      });
+      setSocket(newSocket);
+
+      newSocket.emit("setup", user);
+
+      return () => {
+        newSocket.disconnect();
+      };
+    }
+  }, [user]);
 
   const value = {
     user,
@@ -36,6 +55,9 @@ const ChatContextProvider = ({ children }) => {
     setChats,
     token,
     serverUrl,
+    socket,
+    notification,
+    setNotification
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

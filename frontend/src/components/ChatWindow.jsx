@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import axios from "axios";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
@@ -6,24 +6,21 @@ import MessageInput from "./MessageInput";
 import EditGroupModal from "./EditGroupModal";
 import { ChatContext } from "../context/chatContext";
 
-const ChatWindow = ({ activeChat, onBack, isMobile, user, setActiveChat }) => {
-  
-  const { serverUrl, token } = useContext(ChatContext);
-  // Configure axios
+const ChatWindow = ({ activeChat, onBack, isMobile, setActiveChat }) => {
+  const { serverUrl, token, user, socket } = useContext(ChatContext);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [isSending, setIsSending] = useState(false);
+  const selectedChatCompare = useRef();
+
   axios.defaults.baseURL = serverUrl;
   axios.interceptors.request.use((config) => {
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   });
 
-
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [isSending, setIsSending] = useState(false);
-
-  // Fetch messages when chat changes
   useEffect(() => {
     const fetchMessages = async () => {
       if (!activeChat?._id) return;
@@ -33,6 +30,11 @@ const ChatWindow = ({ activeChat, onBack, isMobile, user, setActiveChat }) => {
         setError(null);
         const { data } = await axios.get(`/api/message/${activeChat._id}`);
         setMessages(data.data || []);
+        selectedChatCompare.current = activeChat;
+        
+        if (socket) {
+          socket.emit("join chat", activeChat._id);
+        }
       } catch (err) {
         setError(err.response?.data?.message || "Failed to load messages");
       } finally {
@@ -41,7 +43,33 @@ const ChatWindow = ({ activeChat, onBack, isMobile, user, setActiveChat }) => {
     };
 
     fetchMessages();
-  }, [activeChat]);
+
+    return () => {
+      selectedChatCompare.current = null;
+    };
+  }, [activeChat, socket]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleMessageReceived = (newMessage) => {
+      if (
+        !selectedChatCompare.current || 
+        selectedChatCompare.current._id !== newMessage.chat._id
+      ) {
+        // Handle notification for other chats
+        console.log("New message in different chat");
+      } else {
+        setMessages(prev => [...prev, newMessage]);
+      }
+    };
+
+    socket.on("message received", handleMessageReceived);
+
+    return () => {
+      socket.off("message received", handleMessageReceived);
+    };
+  }, [socket]);
 
   const handleSendMessage = async (content) => {
     if (!content.trim() || isSending || !activeChat?._id) return;
@@ -58,23 +86,23 @@ const ChatWindow = ({ activeChat, onBack, isMobile, user, setActiveChat }) => {
       setIsSending(true);
       setError(null);
 
-      // Create optimistic update
-      setMessages((prev) => [...prev, tempMessage]);
+      setMessages(prev => [...prev, tempMessage]);
 
-      // Send to server
       const { data } = await axios.post("/api/message", {
         content,
         chatId: activeChat._id,
       });
 
-      // Replace temporary message with server response
-      setMessages((prev) =>
-        prev.map((msg) => (msg._id === tempMessage._id ? data.data : msg))
-      );
+      if (socket) {
+        socket.emit("new message", data.data);
+      }
+
+      setMessages(prev => prev.map(msg => 
+        msg._id === tempMessage._id ? data.data : msg
+      ));
     } catch (err) {
       setError(err.response?.data?.message || "Failed to send message");
-      // Remove the optimistic update if failed
-      setMessages((prev) => prev.filter((msg) => msg._id !== tempMessage._id));
+      setMessages(prev => prev.filter(msg => msg._id !== tempMessage._id));
     } finally {
       setIsSending(false);
     }
@@ -84,7 +112,6 @@ const ChatWindow = ({ activeChat, onBack, isMobile, user, setActiveChat }) => {
 
   return (
     <div className="flex flex-col w-full h-full bg-gray-800">
-      {/* Header */}
       <ChatHeader
         activeChat={activeChat}
         onBack={onBack}
@@ -93,7 +120,6 @@ const ChatWindow = ({ activeChat, onBack, isMobile, user, setActiveChat }) => {
         onEditGroup={() => setIsEditModalOpen(true)}
       />
 
-      {/* Messages List - flex-1 to take available space */}
       <div className="flex-1 w-full overflow-y-auto">
         {loading ? (
           <div className="h-full w-full flex items-center justify-center">
@@ -108,12 +134,10 @@ const ChatWindow = ({ activeChat, onBack, isMobile, user, setActiveChat }) => {
         )}
       </div>
 
-      {/* Message Input - fixed at bottom */}
       <div className="p-4 border-t border-gray-700 bg-gray-800 w-full">
         <MessageInput onSendMessage={handleSendMessage} isSending={isSending} />
       </div>
 
-      {/* Edit Group Modal */}
       {isEditModalOpen && (
         <EditGroupModal
           activeChat={activeChat}

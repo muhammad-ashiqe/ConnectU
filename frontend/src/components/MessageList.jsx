@@ -1,66 +1,83 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 
+// Avatar component for both users
+const Avatar = ({ name, isCurrentUser }) => (
+  <div className={`flex-shrink-0 ${isCurrentUser ? "ml-3" : "mr-3"}`}>      
+    <div
+      className={`h-10 w-10 rounded-full flex items-center justify-center text-white shadow-md ${
+        isCurrentUser ? "bg-indigo-500" : "bg-purple-500"
+      }`}
+    >
+      {name ? name.charAt(0).toUpperCase() : "?"}
+    </div>
+  </div>
+);
+
+// Single message bubble
+const MessageBubble = ({ message, isCurrentUser }) => (
+  <div className={`group flex items-end ${isCurrentUser ? "justify-end" : "justify-start"}`}>      
+    {!isCurrentUser && <Avatar name={message.sender.name} isCurrentUser={false} />}
+
+    <div
+      className={`relative max-w-xs md:max-w-md p-4 rounded-2xl shadow-lg break-words transition-colors duration-200 ${
+        isCurrentUser
+          ? "bg-gradient-to-br from-purple-500 to-purple-600 text-white"
+          : "bg-gray-800 text-gray-100 hover:bg-gray-700"
+      }`}
+    >
+      {!isCurrentUser && (
+        <p className="text-sm font-semibold mb-1">{message.sender.name}</p>
+      )}
+      <p className="text-base leading-relaxed">{message.content}</p>
+      {/* Timestamp appears on hover */}
+      <span className="absolute text-xs text-gray-300 bottom-1 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+        {new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+      </span>
+    </div>
+
+    {isCurrentUser && <Avatar name={message.sender.name} isCurrentUser={true} />}
+  </div>
+);
+
+// Messages list with smart auto-scroll
 const MessagesList = ({ messages, user }) => {
+  const containerRef = useRef(null);
+  const endRef = useRef(null);
+  const [isAutoScroll, setIsAutoScroll] = useState(true);
+
+  // Handler to detect if user scrolled away from bottom
+  const handleScroll = () => {
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    setIsAutoScroll(scrollHeight - scrollTop - clientHeight < 150);
+  };
+
+  // Scroll when new messages arrive, only if user was near bottom
+  useEffect(() => {
+    if (isAutoScroll && endRef.current) {
+      endRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isAutoScroll]);
+
   return (
-    <div className="flex-1 p-4 overflow-y-auto">
-      {messages?.length > 0 ? (
-        messages.map((msg, index) => {
-          console.log("message", msg._id);
-          console.log("user id",user)
-
-          const isCurrentUser = msg.sender._id === user.id;
-
-          return (
-            <div
-              key={index}
-              className={`mb-4 flex ${
-                isCurrentUser ? "justify-end" : "justify-start"
-              }`}
-            >
-              {/* For messages from other users, display the profile circle placeholder */}
-              {!isCurrentUser && (
-                <div className="relative mr-3">
-                  <div className="h-10 w-10 rounded-full bg-gray-600 flex items-center justify-center">
-                    <span className="text-gray-300">
-                      {msg.sender.name
-                        ? msg.sender.name.charAt(0).toUpperCase()
-                        : "?"}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Message Bubble */}
-              <div
-                className={`p-3 rounded-lg max-w-xs md:max-w-md 
-                  ${
-                    isCurrentUser
-                      ? "bg-purple-600 text-white"
-                      : "bg-gray-700 text-gray-100"
-                  }`}
-              >
-                {/* For messages from others, display sender's name on top */}
-                {!isCurrentUser && (
-                  <p className="text-sm text-gray-200 mb-1">
-                    {msg.sender.name}
-                  </p>
-                )}
-                <p>{msg.content}</p>
-                <p className="text-xs mt-1 text-gray-400">
-                  {new Date(msg.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-            </div>
-          );
-        })
+    <div
+      ref={containerRef}
+      onScroll={handleScroll}
+      className="flex-1 p-4 overflow-y-auto flex flex-col space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800  bg-fixed bg-cover bg-[url('https://as2.ftcdn.net/v2/jpg/03/38/75/29/1000_F_338752910_Th7euFDcjaI0nWNOBoi0JDSR0zu92WkM.jpg')] bg-repeat"
+    >
+      {messages && messages.length > 0 ? (
+        messages.map((msg) => (
+          <MessageBubble
+            key={msg._id}
+            message={msg}
+            isCurrentUser={msg.sender._id === user.id}
+          />
+        ))
       ) : (
-        <div className="h-full flex items-center justify-center text-gray-500">
+        <div className="flex-grow flex items-center justify-center text-gray-500">
           <p>No messages yet. Start the conversation!</p>
         </div>
       )}
+      <div ref={endRef} />
     </div>
   );
 };
