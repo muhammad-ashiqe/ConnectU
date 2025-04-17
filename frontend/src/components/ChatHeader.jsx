@@ -9,14 +9,17 @@ const ChatHeader = ({ activeChat, onBack, isMobile, user, onEditGroup }) => {
         avatarText: activeChat.chatName?.charAt(0) || 'G'
       };
     } else {
-      const otherUser = activeChat.users.find(u => u._id !== user._id);
+      const otherUser = activeChat.users[0]._id !== user.id ? activeChat.users[0]: activeChat.users[1] ;
       return {
-        displayName: otherUser?.name || 'User',
+        displayName: otherUser?.name ,
         isGroup: false,
         avatarText: otherUser?.name?.charAt(0) || 'U',
       };
     }
   };
+
+  console.log("active caht users :",activeChat.users)
+  console.log("logges user : ",user.id)
 
   const { displayName, isGroup, avatarText } = getChatDetails();
 

@@ -1,7 +1,8 @@
 import axios from 'axios';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { FiX, FiSearch, FiUserPlus, FiUserX } from 'react-icons/fi';
 import { toast } from 'react-toastify';
+import { ChatContext } from '../context/chatContext';
 
 const CreateGroupModal = ({ isOpen, onClose, onCreateGroup, token }) => {
   const [groupName, setGroupName] = useState('');
@@ -10,6 +11,8 @@ const CreateGroupModal = ({ isOpen, onClose, onCreateGroup, token }) => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const modalRef = useRef(null);
+
+  const {serverUrl} = useContext(ChatContext)
 
   // Close modal when clicking outside
   useEffect(() => {
@@ -43,7 +46,7 @@ const CreateGroupModal = ({ isOpen, onClose, onCreateGroup, token }) => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `http://localhost:7000/api/user/search?search=${searchQuery}`,
+        `${serverUrl}/api/user/search?search=${searchQuery}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -78,7 +81,7 @@ const CreateGroupModal = ({ isOpen, onClose, onCreateGroup, token }) => {
 
     try {
       const response = await axios.post(
-        'http://localhost:7000/api/chat/group',
+        `${serverUrl}/api/chat/group`,
         {
           name: groupName,
           users: selectedUsers.map((user) => user._id),

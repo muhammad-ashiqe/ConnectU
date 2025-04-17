@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { ChatContext } from '../context/chatContext';
 
 const EditGroupModal = ({ activeChat, user, onClose, setActiveChat }) => {
   const [groupName, setGroupName] = useState(activeChat?.chatName || '');
@@ -8,6 +9,8 @@ const EditGroupModal = ({ activeChat, user, onClose, setActiveChat }) => {
   const [success, setSuccess] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const {serverUrl,token} = useContext(ChatContext)
+
 
   const handleSaveChanges = async () => {
     try {
@@ -15,9 +18,9 @@ const EditGroupModal = ({ activeChat, user, onClose, setActiveChat }) => {
       setError(null);
 
       const { data } = await axios.post(
-        'http://localhost:7000/api/chat/rename',
+        `${serverUrl}/api/chat/rename`,
         { chatId: activeChat._id, chatName: groupName },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setSuccess('Group renamed successfully');
@@ -36,9 +39,9 @@ const EditGroupModal = ({ activeChat, user, onClose, setActiveChat }) => {
       setError(null);
 
       const response = await axios.put(
-        'http://localhost:7000/api/chat/remove',
+        `${serverUrl}/api/chat/remove`,
         { chatId: activeChat._id, userId },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.status === 200) {
@@ -68,9 +71,9 @@ const EditGroupModal = ({ activeChat, user, onClose, setActiveChat }) => {
       setLoading(true);
 
       await axios.put(
-        'http://localhost:7000/api/chat/remove',
+        `${serverUrl}/api/chat/remove`,
         { chatId: activeChat._id, userId: user._id },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setSuccess('You have left the group');
@@ -85,8 +88,8 @@ const EditGroupModal = ({ activeChat, user, onClose, setActiveChat }) => {
   const searchUsers = async () => {
     try {
       const { data } = await axios.get(
-        `http://localhost:7000/api/user/search?search=${searchQuery}`,
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        `${serverUrl}/api/user/search?search=${searchQuery}`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const filtered = data.users.filter(
@@ -102,9 +105,9 @@ const EditGroupModal = ({ activeChat, user, onClose, setActiveChat }) => {
   const handleAddUser = async (userToAdd) => {
     try {
       const res = await axios.put(
-        `http://localhost:7000/api/chat/add`,
+        `${serverUrl}/api/chat/add`,
         { chatId: activeChat._id, userId: userToAdd._id },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setActiveChat(res.data);

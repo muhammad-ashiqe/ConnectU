@@ -17,7 +17,7 @@ const Navbar = () => {
   const profileRef = useRef(null);
   const mobileSearchRef = useRef(null);
 
-  const { token, user, setUser, selectedChats, setSelectedChats, chats, setChats } = useContext(ChatContext);
+  const { token, user,serverUrl, setUser, selectedChats, setSelectedChats, chats, setChats } = useContext(ChatContext);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -54,7 +54,7 @@ const Navbar = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `http://localhost:7000/api/user/search?search=${searchQuery}`,
+        `${serverUrl}/api/user/search?search=${searchQuery}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -73,7 +73,7 @@ const Navbar = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:7000/api/chat/`,
+        `${serverUrl}/api/chat/`,
         { userId },
         {
           headers: { Authorization: `Bearer ${token}` },

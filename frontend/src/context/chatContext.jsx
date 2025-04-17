@@ -10,6 +10,8 @@ const ChatContextProvider = ({ children }) => {
   const [selectedChats, setSelectedChats] = useState(null);
   const [chats, setChats] = useState([]);
 
+  const serverUrl = "http://localhost:7000";
+
   useEffect(() => {
     const storedUser = localStorage.getItem("userInfo");
     if (storedUser) {
@@ -17,9 +19,13 @@ const ChatContextProvider = ({ children }) => {
     }
   }, []);
 
-  useEffect(() => {
-    setToken(localStorage.getItem("token"));
-  }, [token]);
+  useEffect(()=>{
+    const storedToken = localStorage.getItem('token');
+    if(storedToken){
+      setToken(storedToken)
+    } 
+  },[])
+
 
   const value = {
     user,
@@ -29,6 +35,7 @@ const ChatContextProvider = ({ children }) => {
     chats,
     setChats,
     token,
+    serverUrl,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

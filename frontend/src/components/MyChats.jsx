@@ -19,7 +19,7 @@ const MyChats = ({ chats, activeChat, user, onChatSelect, setIsCreateGroupModalO
         {chats?.map((chat) => {
           const chatName = chat.isGroupChat
             ? chat.chatName
-            : chat.users[1].name || "Unknown";
+            : chat.users[0]._id !== user.id ? chat.users[0].name : chat.users[1].name  || "Unknown";
 
           return (
             <div

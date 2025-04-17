@@ -12,12 +12,12 @@ const Home = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showSidebar, setShowSidebar] = useState(true);
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false); // For Create Group Modal
-  const { user, setChats, chats } = useContext(ChatContext);
+  const { user, setChats, chats,serverUrl,token } = useContext(ChatContext);
 
   const fetchAllChats = async () => {
     try {
-      const { data } = await axios.get('http://localhost:7000/api/chat/', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      const { data } = await axios.get(`${serverUrl}/api/chat/`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       setChats(data);
     } catch (error) {
@@ -38,7 +38,7 @@ const Home = () => {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [activeChat]);
+  }, [activeChat,token]);
 
   const handleChatSelect = (chat) => {
     const chatName = chat.isGroupChat

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { FiEye, FiEyeOff, FiMessageSquare, FiUser, FiMail, FiLock, FiArrowRight } from 'react-icons/fi';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { ChatContext } from '../context/chatContext';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -10,6 +11,8 @@ export default function AuthPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const {token,serverUrl} = useContext(ChatContext)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -40,7 +43,7 @@ export default function AuthPage() {
           return;
         }
   
-        response = await axios.post('http://localhost:7000/api/user/register', {
+        response = await axios.post(`${serverUrl}/api/user/register`, {
           name: formData.name,
           email: formData.email,
           password: formData.password
@@ -49,7 +52,7 @@ export default function AuthPage() {
         toast.success(response.data.message || 'Registration successful!');
       } else {
         // Login logic
-        response = await axios.post('http://localhost:7000/api/user/login', {
+        response = await axios.post(`${serverUrl}/api/user/login`, {
           email: formData.email,
           password: formData.password
         });
