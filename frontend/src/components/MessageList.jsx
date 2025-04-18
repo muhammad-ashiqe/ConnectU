@@ -22,7 +22,7 @@ const MessageBubble = ({ message, isCurrentUser }) => (
       className={`relative max-w-xs md:max-w-md p-4 rounded-2xl shadow-lg break-words transition-colors duration-200 ${
         isCurrentUser
           ? "bg-gradient-to-br from-purple-500 to-purple-600 text-white"
-          : "bg-gray-800 text-gray-100 hover:bg-gray-700"
+          : "bg-gray-700 text-gray-100 hover:bg-gray-500"
       }`}
     >
       {!isCurrentUser && (
@@ -62,7 +62,7 @@ const MessagesList = ({ messages, user }) => {
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className="flex-1 p-4 overflow-y-auto flex flex-col space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800  bg-fixed bg-cover bg-[url('https://as2.ftcdn.net/v2/jpg/03/38/75/29/1000_F_338752910_Th7euFDcjaI0nWNOBoi0JDSR0zu92WkM.jpg')] bg-repeat"
+      className="flex-1 p-4 overflow-y-auto flex flex-col space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800"
     >
       {messages && messages.length > 0 ? (
         messages.map((msg) => (

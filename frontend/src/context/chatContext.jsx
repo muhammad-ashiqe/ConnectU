@@ -1,7 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import io from "socket.io-client";
 
-const ENDPOINT = "http://localhost:7000";
+const ENDPOINT = "https://connectu-5duf.onrender.com";
 
 const ChatContext = createContext();
 
@@ -13,7 +13,7 @@ const ChatContextProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [notification, setNotification] = useState([]);
 
-  const serverUrl = "http://localhost:7000";
+  const serverUrl = "https://connectu-5duf.onrender.com";
 
   useEffect(() => {
     const storedUser = localStorage.getItem("userInfo");
