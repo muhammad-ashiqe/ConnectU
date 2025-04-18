@@ -30,7 +30,7 @@ const server = http.createServer(app);
 const io = new SocketIOServer(server, {
   pingTimeout: 60000,
   cors: {
-    origin: "https://connect-u-ruddy.vercel.app/",
+    origin: "https://connect-u-ruddy.vercel.app",
     credentials: true,
   },
 });
